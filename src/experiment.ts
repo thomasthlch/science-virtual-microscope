@@ -80,27 +80,32 @@ function drawBread(canvas: HTMLCanvasElement): void {
     ctx.fill()
   }
 
-  const colonies = Math.round(score * 2.4)
+  if (score > 0.4) {
+    ctx.beginPath()
+    ctx.roundRect(0, bh * 0.08, bw, bh * 0.84, 28 * dpr)
+    ctx.fillStyle = `rgba(58, 74, 48, ${Math.min(0.28, score / 28)})`
+    ctx.fill()
+  }
+  const colonies = score < 0.4 ? 0 : Math.round(3 + score * 3.4)
   for (let i = 0; i < colonies; i += 1) {
-    const x = 20 * dpr + rand() * (bw - 40 * dpr)
-    const y = bh * 0.18 + rand() * bh * 0.66
-    const r = (10 + rand() * 16 + score * 1.6) * dpr
-    const g = ctx.createRadialGradient(x, y, r * 0.2, x, y, r)
-    const green = rand() > 0.35
-    g.addColorStop(0, green ? 'rgba(88, 110, 72, 0.15)' : 'rgba(40, 40, 40, 0.1)')
-    g.addColorStop(0.55, green ? 'rgba(62, 84, 58, 0.78)' : 'rgba(28, 28, 28, 0.8)')
-    g.addColorStop(1, 'rgba(20, 24, 18, 0)')
+    const x = 28 * dpr + rand() * (bw - 56 * dpr)
+    const y = bh * 0.16 + rand() * bh * 0.68
+    const r = (12 + rand() * 18 + score * 1.3) * dpr
+    const g = ctx.createRadialGradient(x, y, r * 0.15, x, y, r)
+    const dark = i % 3 === 0
+    g.addColorStop(0, dark ? 'rgba(28, 30, 26, 0.95)' : 'rgba(74, 102, 58, 0.92)')
+    g.addColorStop(0.72, dark ? 'rgba(20, 22, 18, 0.88)' : 'rgba(54, 78, 46, 0.9)')
+    g.addColorStop(1, 'rgba(40, 52, 34, 0.05)')
     ctx.fillStyle = g
     ctx.beginPath()
     ctx.arc(x, y, r, 0, Math.PI * 2)
     ctx.fill()
-    if (score > 3) {
-      ctx.fillStyle = 'rgba(20,16,12,0.85)'
-      for (let s = 0; s < 4; s += 1) {
-        ctx.beginPath()
-        ctx.arc(x + (rand() - 0.5) * r, y + (rand() - 0.5) * r, 1.6 * dpr, 0, Math.PI * 2)
-        ctx.fill()
-      }
+    ctx.fillStyle = 'rgba(16, 18, 14, 0.9)'
+    const specks = 3 + Math.floor(score / 3)
+    for (let s = 0; s < specks; s += 1) {
+      ctx.beginPath()
+      ctx.arc(x + (rand() - 0.5) * r * 0.8, y + (rand() - 0.5) * r * 0.8, (1.4 + rand() * 1.8) * dpr, 0, Math.PI * 2)
+      ctx.fill()
     }
   }
   ctx.restore()

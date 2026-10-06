@@ -28,7 +28,7 @@ assert(fieldDiameterUm(10) > fieldDiameterUm(40), 'field shrinks from 10× to 40
 const blurry = sharpnessOf(focusZ(22, 50), 4)
 const sharpLow = sharpnessOf(focusZ(50, 50), 4)
 const softHigh = sharpnessOf(focusZ(50, 50), 40)
-const sharpHigh = sharpnessOf(focusZ(50, 70), 40)
+const sharpHigh = sharpnessOf(focusZ(50, 66), 40)
 assert(blurry < 0.2, `starting coarse focus is blurry (${blurry})`)
 assert(sharpLow === 1, 'coarse focus can sharpen the 4× view')
 assert(softHigh < 0.05, `40× stays blurry if only low-power focus was used (${softHigh})`)
@@ -54,7 +54,7 @@ assert(diffCount(CONTROL, CONTROL) === 0, 'control matches itself')
 const optics = computeOptics({
   objective: 40,
   coarse: 50,
-  fine: 70,
+  fine: 66,
   brightness: 70,
   diaphragm: 4,
   lightOn: true,

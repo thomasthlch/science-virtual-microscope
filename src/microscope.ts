@@ -8,6 +8,7 @@ import { toast } from './toast'
 const SPECIMENS: SpecimenId[] = ['mould', 'yeast', 'bacteria', 'onion']
 
 let lensCanvas: HTMLCanvasElement | null = null
+let specimenBuffer: HTMLCanvasElement | null = null
 let scheduled = false
 let dirTimer = 0
 
@@ -121,7 +122,7 @@ function bindKnob(el: HTMLElement, kind: 'coarse' | 'fine'): void {
     face.addEventListener('pointercancel', up)
   })
   face.addEventListener('keydown', (event) => {
-    const step = kind === 'coarse' ? 4 : 3
+    const step = kind === 'coarse' ? 4 : 4
     if (event.key === 'ArrowUp' || event.key === 'ArrowRight') {
       event.preventDefault()
       if (kind === 'coarse') setCoarse(live.coarse + step)
@@ -137,7 +138,7 @@ function bindKnob(el: HTMLElement, kind: 'coarse' | 'fine'): void {
     button.addEventListener('click', () => {
       const dir = Number(button.dataset.step)
       if (kind === 'coarse') setCoarse(live.coarse + dir * 4)
-      else setFine(live.fine + dir * 3)
+      else setFine(live.fine + dir * 4)
     })
   })
 }
@@ -154,16 +155,16 @@ function hintText(): string {
   if (live.objective !== 4 && !progress.flags.focused4) {
     return '建議先轉回 4× 低倍物鏡。用粗調焦輪找到影像，對準想看的位置，才轉高倍。'
   }
+  if (optics.sharpness < 0.55) {
+    if (live.objective === 4) return '影像仍然模糊。慢慢轉動粗調焦輪，直至看到輪廓，再用細調焦輪調清楚。'
+    return '高倍影像仍然模糊。請只用細調焦輪：多按幾下「＋」，清晰度上升後就停。如果又變模糊，改按「－」。完全找不到就轉回 4×。'
+  }
   if (optics.dim > 0.45) return '光線太暗。可增加亮度，或把光圈開大一點。'
   if (optics.wash > 0.34) return '光線太強，影像發白。試試收細光圈，或降低亮度。'
   if (live.specimen === 'bacteria' && live.objective < 40) {
     return '細菌比酵母菌細小得多。4× 和 10× 通常看不清細胞，請轉到 40×，再用細調焦輪對焦。'
   }
-  if (optics.sharpness < 0.55) {
-    if (live.objective === 4) return '影像仍然模糊。慢慢轉動粗調焦輪，直至看到輪廓，再用細調焦輪調清楚。'
-    return '高倍影像很模糊。請只用細調焦輪。如果完全找不到，轉回 4× 重新對焦。'
-  }
-  if (optics.sharpness < 0.92) return '已經大致看到了。再用細調焦輪輕輕調，直到最清晰。'
+  if (optics.sharpness < 0.9) return '已經大致看到了。再用細調焦輪輕輕調，直到最清晰。'
   if (live.specimen === 'mould') {
     return live.fromExperiment
       ? '這是實驗麵包的玻片。找出絲狀菌絲和深色孢子囊。生長較多的麵包，視野裏的霉會較密。'
@@ -178,11 +179,10 @@ function sharpWord(): string {
   if (!live.specimen) return '未放玻片'
   if (!live.lightOn) return '沒有光線'
   const optics = opticsNow()
+  if (optics.sharpness <= 0.9) return optics.sharpness > 0.55 ? '略為模糊' : '模糊'
   if (optics.dim > 0.55) return '太暗'
-  if (optics.wash > 0.45) return '發白'
-  if (optics.sharpness > 0.9) return '清晰'
-  if (optics.sharpness > 0.55) return '略為模糊'
-  return '模糊'
+  if (optics.wash > 0.5) return '發白'
+  return '清晰'
 }
 
 function drawLens(): void {
@@ -213,18 +213,22 @@ function drawLens(): void {
   ctx.fillRect(0, 0, w, h)
 
   if (live.lightOn && live.specimen) {
-    const pxPerUm = w / optics.fieldUm
-    ctx.save()
-    ctx.globalAlpha = Math.max(0.12, Math.min(1, 0.22 + optics.visibility * 0.9))
-    if (optics.blurCss > 0.35) {
-      const contrast = (0.7 + optics.sharpness * 0.3).toFixed(3)
-      ctx.filter = `blur(${(optics.blurCss * dpr).toFixed(2)}px) contrast(${contrast})`
+    if (!specimenBuffer) specimenBuffer = document.createElement('canvas')
+    if (specimenBuffer.width !== w || specimenBuffer.height !== h) {
+      specimenBuffer.width = w
+      specimenBuffer.height = h
     }
-    ctx.translate(cx, cy)
-    ctx.scale(-pxPerUm, -pxPerUm)
-    ctx.translate(-live.sampleX, -live.sampleY)
+    const buffer = specimenBuffer.getContext('2d')
+    if (!buffer) return
+    buffer.setTransform(1, 0, 0, 1, 0, 0)
+    buffer.clearRect(0, 0, w, h)
+    const pxPerUm = w / optics.fieldUm
+    buffer.save()
+    buffer.translate(cx, cy)
+    buffer.scale(-pxPerUm, -pxPerUm)
+    buffer.translate(-live.sampleX, -live.sampleY)
     drawSpecimen(
-      ctx,
+      buffer,
       live.specimen,
       live.sampleX,
       live.sampleY,
@@ -233,6 +237,14 @@ function drawLens(): void {
       live.objective,
       live.mouldDensity,
     )
+    buffer.restore()
+    ctx.save()
+    ctx.globalAlpha = Math.max(0.12, Math.min(1, 0.22 + optics.visibility * 0.9))
+    if (optics.blurCss > 0.4) {
+      const contrast = (0.45 + optics.sharpness * 0.55).toFixed(3)
+      ctx.filter = `blur(${(optics.blurCss * dpr).toFixed(2)}px) contrast(${contrast})`
+    }
+    ctx.drawImage(specimenBuffer, 0, 0)
     ctx.restore()
     if (optics.wash > 0.02) {
       ctx.fillStyle = `rgba(255,255,255,${optics.wash})`

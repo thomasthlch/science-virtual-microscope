@@ -146,7 +146,7 @@ h1 { margin: 0; font-size: clamp(1.8rem, 3vw, 2.6rem); letter-spacing: 0.06em; }
 }
 .parts-layout { grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.8fr); align-items: start; }
 .part-card h2 { font-size: clamp(1.8rem, 3vw, 2.4rem); }
-.diagram-wrap { position: relative; padding: 8px 118px 36px; }
+.diagram-wrap { position: relative; max-width: 640px; margin: 0 auto; }
 .microscope-svg { width: 100%; height: auto; display: block; }
 .microscope-svg .hit { fill: transparent; stroke: none; }
 .microscope-svg .part { cursor: pointer; }
@@ -167,22 +167,43 @@ h1 { margin: 0; font-size: clamp(1.8rem, 3vw, 2.6rem); letter-spacing: 0.06em; }
 .lens-text { fill: #1b1f22; font-size: 11px; font-weight: 800; pointer-events: none; }
 .microscope-svg .body { stroke: #1c3336; stroke-width: 2.4; }
 .microscope-svg .part.is-selected .body { stroke: #e39b12; stroke-width: 4; }
-.tag-layer { position: absolute; inset: 0; pointer-events: none; }
+.tag-layer { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .tag {
-  position: absolute;
-  left: var(--x);
-  top: var(--y);
-  transform: translate(-50%, -50%);
-  pointer-events: auto;
   background: white;
   border: 2px solid #1d3a40;
   border-radius: 999px;
-  padding: 6px 10px;
+  padding: 6px 12px;
   font-weight: 800;
   box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
+.tag-no {
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: var(--teal-deep);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+.marker { pointer-events: none; }
+.marker line { stroke: #163033; stroke-width: 1.6; }
+.marker circle { fill: #fff; stroke: #163033; stroke-width: 2; pointer-events: auto; cursor: pointer; }
+.marker text {
+  fill: #163033;
+  font-size: 16px;
+  font-weight: 800;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.marker.is-selected circle { fill: #e8a317; }
+.is-challenge .markers, .is-challenge .tag-layer { display: none; }
 .tag.is-selected, .tag[aria-pressed="true"] { background: var(--teal); color: white; border-color: var(--teal); }
-.is-challenge .tag-layer { visibility: hidden; }
+.tag.is-selected .tag-no, .tag[aria-pressed="true"] .tag-no { background: white; color: var(--teal-deep); }
 .diagram-wrap.shake { animation: shake 0.4s linear; }
 @keyframes shake {
   20% { transform: translateX(-6px); }
@@ -494,10 +515,6 @@ body.teacher #mag-total { font-size: 4.6rem; }
 @media (max-width: 1100px) {
   .topbar { grid-template-columns: 1fr; }
   .parts-layout, .scope-layout, .exp-grid, .exp-results, .notes-grid { grid-template-columns: 1fr; }
-  .diagram-wrap { padding: 0 0 8px; }
-  .tag-layer { position: static; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; pointer-events: auto; }
-  .tag { position: static; transform: none; }
-  .is-challenge .tag-layer { display: none; }
 }
 @media (max-width: 720px) {
   .knob-row { grid-template-columns: 1fr; }

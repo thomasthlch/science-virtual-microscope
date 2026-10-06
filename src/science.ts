@@ -6,7 +6,7 @@ export const EYEPIECE = 10
 /** Teaching field diameter at the 40× objective, in micrometres. */
 export const FIELD_UM_AT_40 = 200
 
-export const FINE_WEIGHT = 0.2
+export const FINE_WEIGHT = 0.22
 
 export const CONTROL: Setup = {
   temp: 'room',
@@ -34,14 +34,14 @@ export function fieldLabel(objective: Objective): string {
 
 export function focusTarget(objective: Objective): number {
   if (objective === 4) return 50
-  if (objective === 10) return 52.4
-  return 54
+  if (objective === 10) return 51.2
+  return 53.5
 }
 
 export function depthOfField(objective: Objective): number {
-  if (objective === 4) return 7
-  if (objective === 10) return 1.6
-  return 0.45
+  if (objective === 4) return 2.2
+  if (objective === 10) return 1.3
+  return 1.15
 }
 
 /** Coarse is 0–100. Fine is 0–100 and only nudges the focal plane. */
@@ -53,7 +53,7 @@ export function sharpnessOf(z: number, objective: Objective): number {
   const miss = Math.abs(z - focusTarget(objective))
   const dof = depthOfField(objective)
   if (miss <= dof) return 1
-  const span = objective === 4 ? 18 : objective === 10 ? 6 : 1.15
+  const span = objective === 4 ? 24 : objective === 10 ? 5 : 2.2
   return Math.max(0, 1 - (miss - dof) / span)
 }
 
@@ -96,7 +96,7 @@ export function computeOptics(input: {
     visibility = Math.min(1, lightLevel * 1.25)
     dim = lightLevel < 0.38 ? (0.38 - lightLevel) / 0.38 : 0
     const openExcess = Math.max(0, input.diaphragm - optimal)
-    wash = Math.min(0.72, openExcess * 0.2 + (input.brightness > 85 && openExcess > 0 ? 0.1 : 0))
+    wash = Math.min(0.55, openExcess * 0.12 + (input.brightness > 85 && openExcess > 0 ? 0.08 : 0))
   }
   return {
     totalMag: totalMagnification(input.objective),
@@ -104,7 +104,7 @@ export function computeOptics(input: {
     fieldText: fieldLabel(input.objective),
     z,
     sharpness,
-    blurCss: sharpness > 0.94 ? 0 : (1 - sharpness) * 16,
+    blurCss: sharpness > 0.94 ? 0 : (1 - sharpness) * 26,
     visibility,
     wash,
     dim,

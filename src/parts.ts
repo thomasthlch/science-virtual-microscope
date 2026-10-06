@@ -193,6 +193,19 @@ const SVG = `
     <circle class="body knob-small" cx="430" cy="372" r="24"/>
     <line x1="430" y1="352" x2="430" y2="364" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
   </g>
+  <g class="markers">
+    <g class="marker" data-part="eyepiece"><line x1="54" y1="42" x2="176" y2="50"/><circle cx="36" cy="42" r="15"/><text x="36" y="43">1</text></g>
+    <g class="marker" data-part="objective"><line x1="54" y1="286" x2="156" y2="280"/><circle cx="36" cy="286" r="15"/><text x="36" y="287">2</text></g>
+    <g class="marker" data-part="nosepiece"><line x1="54" y1="214" x2="150" y2="224"/><circle cx="36" cy="214" r="15"/><text x="36" y="215">3</text></g>
+    <g class="marker" data-part="stage"><line x1="54" y1="368" x2="110" y2="368"/><circle cx="36" cy="368" r="15"/><text x="36" y="369">4</text></g>
+    <g class="marker" data-part="clips"><line x1="430" y1="330" x2="300" y2="340"/><circle cx="448" cy="330" r="15"/><text x="448" y="331">5</text></g>
+    <g class="marker" data-part="coarse"><line x1="430" y1="250" x2="404" y2="270"/><circle cx="448" cy="250" r="15"/><text x="448" y="251">6</text></g>
+    <g class="marker" data-part="fine"><line x1="430" y1="400" x2="430" y2="380"/><circle cx="448" cy="410" r="15"/><text x="448" y="411">7</text></g>
+    <g class="marker" data-part="diaphragm"><line x1="54" y1="450" x2="176" y2="430"/><circle cx="36" cy="450" r="15"/><text x="36" y="451">8</text></g>
+    <g class="marker" data-part="light"><line x1="54" y1="556" x2="164" y2="556"/><circle cx="36" cy="556" r="15"/><text x="36" y="557">9</text></g>
+    <g class="marker" data-part="arm"><line x1="430" y1="490" x2="390" y2="470"/><circle cx="448" cy="500" r="15"/><text x="448" y="501">10</text></g>
+    <g class="marker" data-part="base"><line x1="54" y1="690" x2="120" y2="700"/><circle cx="36" cy="690" r="15"/><text x="36" y="691">11</text></g>
+  </g>
 </svg>`
 
 function starsForMistakes(mistakes: number): number {
@@ -239,15 +252,14 @@ function onPick(id: PartId, root: HTMLElement): void {
 let cardSig = ''
 
 export function mountParts(root: HTMLElement): void {
-  const tags = PARTS.map((part) => {
-    const pos = tagPosition(part.id)
-    return `<button type="button" class="tag" data-part="${part.id}" style="--x:${pos.x};--y:${pos.y}">${part.name}</button>`
+  const tags = PARTS.map((part, index) => {
+    return `<button type="button" class="tag" data-part="${part.id}"><span class="tag-no">${index + 1}</span>${part.name}</button>`
   }).join('')
 
   root.innerHTML = `
     <div class="parts-layout">
       <div class="diagram-column card">
-        <p class="lead">按顯微鏡上的部件或旁邊的名稱，認識它的功能。課堂搬動顯微鏡時，要一手握鏡臂、一手托鏡座。</p>
+        <p class="lead">圖上的數字對應下方名稱。按部件或名稱，認識它的功能。搬動顯微鏡時，要一手握鏡臂、一手托鏡座。</p>
         <div class="diagram-wrap">
           ${SVG}
           <div class="tag-layer">${tags}</div>
@@ -280,23 +292,6 @@ export function mountParts(root: HTMLElement): void {
     if (!id) return
     onPick(id, root)
   })
-}
-
-function tagPosition(id: PartId): { x: string; y: string } {
-  const map: Record<PartId, { x: string; y: string }> = {
-    eyepiece: { x: '18%', y: '6%' },
-    nosepiece: { x: '16%', y: '30%' },
-    objective: { x: '14%', y: '40%' },
-    clips: { x: '78%', y: '43%' },
-    stage: { x: '12%', y: '50%' },
-    diaphragm: { x: '20%', y: '60%' },
-    coarse: { x: '84%', y: '33%' },
-    fine: { x: '88%', y: '49%' },
-    arm: { x: '86%', y: '64%' },
-    light: { x: '22%', y: '74%' },
-    base: { x: '46%', y: '94%' },
-  }
-  return map[id]
 }
 
 export function updateParts(root: HTMLElement): void {
